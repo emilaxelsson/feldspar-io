@@ -1,0 +1,253 @@
+module Feldspar.IO where
+
+
+
+import Control.Applicative
+import Data.Proxy
+
+import qualified Language.C.Syntax as C
+
+import Language.C.Monad
+import Language.Embedded.Imperative
+    ( Any
+    , (:+:)
+    , FunArg (..)
+    , Scannable
+    , Ref
+    , RefCMD
+    , Arr
+    , ArrCMD
+    , ControlCMD
+    , IOMode
+    , Handle
+    , stdout
+    , PrintfArg
+    , FileCMD
+    , CallCMD
+    )
+import qualified Language.Embedded.Imperative as Imp
+import Language.Embedded.Concurrent
+
+import Feldspar (Type, Data)
+import Feldspar.Compiler.FromImperative ()
+
+
+
+type CMD
+    =   RefCMD     Data
+    :+: ArrCMD     Data
+    :+: ControlCMD Data
+    :+: FileCMD    Data
+    :+: CallCMD    Data
+    :+: ChanCMD    Data
+    :+: ThreadCMD
+
+-- | Program monad
+newtype Program a = Program {unProgram :: Imp.Program CMD a}
+  deriving (Functor, Applicative, Monad)
+
+-- | Interpret a program in the 'IO' monad
+run :: Program a -> IO a
+run = Imp.interpret . unProgram
+
+-- | Compile a program to C code represented as a string
+compileStr :: Program a -> String
+compileStr = show . prettyCGen . wrapMain . Imp.interpret . unProgram
+
+-- | Compile a program to C code and print it on the screen
+compile :: Program a -> IO ()
+compile = putStrLn . compileStr
+
+
+
+----------------------------------------------------------------------------------------------------
+-- * User interface
+----------------------------------------------------------------------------------------------------
+
+-- | Create an uninitialized reference
+newRef :: Type a => Program (Ref a)
+newRef = Program Imp.newRef
+
+-- | Create an initialized reference
+initRef :: Type a => Data a -> Program (Ref a)
+initRef = Program . Imp.initRef
+
+-- | Get the contents of a reference
+getRef :: Type a => Ref a -> Program (Data a)
+getRef = Program . Imp.getRef
+
+-- | Set the contents of a reference
+setRef :: Type a => Ref a -> Data a -> Program ()
+setRef r = Program . Imp.setRef r
+
+-- | Modify the contents of reference
+modifyRef :: Type a => Ref a -> (Data a -> Data a) -> Program ()
+modifyRef r f = getRef r >>= setRef r . f
+
+-- | Freeze the contents of reference (only safe if the reference is never written to after the
+-- first action that makes use of the resulting expression)
+unsafeFreezeRef :: Type a => Ref a -> Data a
+unsafeFreezeRef = Imp.unsafeFreezeRef
+
+-- | Create an uninitialized an array
+newArr :: (Type a, Type i, Integral i) => Data i -> Data a -> Program (Arr i a)
+newArr n a = Program $ Imp.newArr n a
+
+-- | Set the contents of an array
+getArr :: (Type a, Integral i) => Data i -> Arr i a -> Program (Data a)
+getArr i arr = Program $ Imp.getArr i arr
+
+-- | Set the contents of an array
+setArr :: (Type a, Integral i) => Data i -> Data a -> Arr i a -> Program ()
+setArr i a arr = Program $ Imp.setArr i a arr
+
+-- | Conditional statement
+iff
+    :: Data Bool   -- ^ Condition
+    -> Program ()  -- ^ True branch
+    -> Program ()  -- ^ False branch
+    -> Program ()
+iff b t f = Program $ Imp.iff b (unProgram t) (unProgram f)
+
+-- | Conditional statement that returns an expression
+ifE :: Type a
+    => Data Bool         -- ^ Condition
+    -> Program (Data a)  -- ^ True branch
+    -> Program (Data a)  -- ^ False branch
+    -> Program (Data a)
+ifE b t f = Program $ Imp.ifE b (unProgram t) (unProgram f)
+
+-- | While loop
+while
+    :: Program (Data Bool)  -- ^ Continue condition
+    -> Program ()           -- ^ Loop body
+    -> Program ()
+while b t = Program $ Imp.while (unProgram b) (unProgram t)
+
+-- | While loop that returns an expression
+whileE :: Type a
+    => Program (Data Bool)  -- ^ Continue condition
+    -> Program (Data a)     -- ^ Loop body
+    -> Program (Data a)
+whileE b t = Program $ Imp.whileE (unProgram b) (unProgram t)
+
+-- | Break out from a loop
+break :: Program ()
+break = Program Imp.break
+
+-- | Open a file
+fopen :: FilePath -> IOMode -> Program Handle
+fopen file = Program . Imp.fopen file
+
+-- | Close a file
+fclose :: Handle -> Program ()
+fclose = Program . Imp.fclose
+
+-- | Check for end of file
+feof :: Handle -> Program (Data Bool)
+feof = Program . Imp.feof
+
+class PrintfType r
+  where
+    fprf :: Handle -> String -> [FunArg PrintfArg Data] -> r
+
+instance (a ~ ()) => PrintfType (Program a)
+  where
+    fprf h form as = Program $ Imp.singleE $ Imp.FPrintf h form (reverse as)
+
+instance (PrintfArg a, PrintfType r) => PrintfType (Data a -> r)
+  where
+    fprf h form as = \a -> fprf h form (ValArg a : as)
+
+-- | Print to a handle. Accepts a variable number of arguments.
+fprintf :: PrintfType r => Handle -> String -> r
+fprintf h format = fprf h format []
+
+-- | Put a single value to a handle
+fput :: PrintfArg a => Handle -> Data a -> Program ()
+fput hdl a = Program $ Imp.fprintf hdl "%f" a
+
+-- | Get a single value from a handle
+fget :: (Read a, Scannable a, Type a) => Handle -> Program (Data a)
+fget = Program . Imp.fget
+
+-- | Print to @stdout@. Accepts a variable number of arguments.
+printf :: PrintfType r => String -> r
+printf = fprintf stdout
+
+-- | Add an @#include@ statement to the generated code
+addInclude :: String -> Program ()
+addInclude = Program . Imp.addInclude
+
+-- | Add a global definition to the generated code
+--
+-- Can be used conveniently as follows:
+--
+-- > {-# LANGUAGE QuasiQuotes #-}
+-- >
+-- > import Feldspar.IO
+-- > import Language.C.Quote.C
+-- >
+-- > prog = do
+-- >     ...
+-- >     addDefinition myCFunction
+-- >     ...
+-- >   where
+-- >     myCFunction = [cedecl|
+-- >       void my_C_function( ... )
+-- >       {
+-- >           // C code
+-- >           // goes here
+-- >       }
+-- >       |]
+addDefinition :: C.Definition -> Program ()
+addDefinition = Program . Imp.addDefinition
+
+addExternFun :: forall proxy res . Type res
+    => String              -- ^ Function name
+    -> proxy res           -- ^ Proxy for expression and result type
+    -> [FunArg Type Data]  -- ^ Arguments (only used to determine types)
+    -> Program ()
+addExternFun fun res args = Program $ Imp.addExternFun fun res' args
+  where
+    res' = Proxy :: Proxy (Data res)
+
+-- | Declare an external procedure
+addExternProc
+    :: String              -- ^ Procedure name
+    -> [FunArg Type Data]  -- ^ Arguments (only used to determine types)
+    -> Program ()
+addExternProc proc args = Program $ Imp.addExternProc proc args
+
+-- | Call a function
+callFun :: Type a
+    => String             -- ^ Function name
+    -> [FunArg Any Data]  -- ^ Arguments
+    -> Program (Data a)
+callFun fun as = Program $ Imp.callFun fun as
+
+-- | Call a procedure
+callProc
+    :: String             -- ^ Function name
+    -> [FunArg Any Data]  -- ^ Arguments
+    -> Program ()
+callProc fun as = Program $ Imp.callProc fun as
+
+-- | Declare and call an external function
+externFun :: Type res
+    => String              -- ^ Procedure name
+    -> [FunArg Type Data]  -- ^ Arguments
+    -> Program (Data res)
+externFun fun args = Program $ Imp.externFun fun args
+
+-- | Declare and call an external procedure
+externProc
+    :: String              -- ^ Procedure name
+    -> [FunArg Type Data]  -- ^ Arguments
+    -> Program ()
+externProc proc args = Program $ Imp.externProc proc args
+
+-- | Get current time as number of seconds passed today
+getTime :: Program (Data Double)
+getTime = Program Imp.getTime
+
