@@ -3,6 +3,7 @@ module Feldspar.IO where
 
 
 import Control.Applicative
+import Data.Ix
 import Data.Proxy
 
 import qualified Language.C.Syntax as C
@@ -90,15 +91,15 @@ unsafeFreezeRef :: Type a => Ref a -> Data a
 unsafeFreezeRef = Imp.unsafeFreezeRef
 
 -- | Create an uninitialized an array
-newArr :: (Type a, Type i, Integral i) => Data i -> Data a -> Program (Arr i a)
+newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Data a -> Program (Arr i a)
 newArr n a = Program $ Imp.newArr n a
 
 -- | Set the contents of an array
-getArr :: (Type a, Integral i) => Data i -> Arr i a -> Program (Data a)
+getArr :: (Type a, Integral i, Ix i) => Data i -> Arr i a -> Program (Data a)
 getArr i arr = Program $ Imp.getArr i arr
 
 -- | Set the contents of an array
-setArr :: (Type a, Integral i) => Data i -> Data a -> Arr i a -> Program ()
+setArr :: (Type a, Integral i, Ix i) => Data i -> Data a -> Arr i a -> Program ()
 setArr i a arr = Program $ Imp.setArr i a arr
 
 -- | Conditional statement
