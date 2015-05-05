@@ -8,44 +8,29 @@ import Data.Proxy
 
 import qualified Language.C.Syntax as C
 
+import qualified Control.Monad.Operational.Compositional as Imp
 import Language.C.Monad
-import Language.Embedded.Imperative
-    ( Any
-    , (:+:)
-    , FunArg (..)
-    , Scannable
-    , Ref
-    , RefCMD
-    , Arr
-    , ArrCMD
-    , ControlCMD
-    , IOMode
-    , Handle
-    , stdout
-    , PrintfArg
-    , FileCMD
-    , CallCMD
-    )
+import Language.Embedded.Imperative.CMD
+import Language.Embedded.Imperative.Types
+import Language.Embedded.Imperative (Any)
 import qualified Language.Embedded.Imperative as Imp
-import Language.Embedded.Concurrent
 
 import Feldspar (Type, Data)
 import Feldspar.Compiler.FromImperative ()
+import Language.Embedded.Backend.C ()
+import Feldspar.IO.Internal
 
 
-
-type CMD
-    =   RefCMD     Data
-    :+: ArrCMD     Data
-    :+: ControlCMD Data
-    :+: FileCMD    Data
-    :+: CallCMD    Data
-    :+: ChanCMD    Data
-    :+: ThreadCMD
 
 -- | Program monad
-newtype Program a = Program {unProgram :: Imp.Program CMD a}
+newtype Program a = Program {unProgram :: Imp.Program FeldCMD a}
   deriving (Functor, Applicative, Monad)
+
+
+
+--------------------------------------------------------------------------------
+-- * Back ends
+--------------------------------------------------------------------------------
 
 -- | Interpret a program in the 'IO' monad
 run :: Program a -> IO a
@@ -61,9 +46,9 @@ compile = putStrLn . compileStr
 
 
 
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- * User interface
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- | Create an uninitialized reference
 newRef :: Type a => Program (Ref a)
@@ -101,6 +86,15 @@ getArr i arr = Program $ Imp.getArr i arr
 -- | Set the contents of an array
 setArr :: (Type a, Integral i, Ix i) => Data i -> Data a -> Arr i a -> Program ()
 setArr i a arr = Program $ Imp.setArr i a arr
+
+thawArr :: (Type a, Num n, Ix n) => Data [a] -> Program (Arr n a)
+thawArr = Program . Imp.singleInj . ThawArr
+
+unsafeThawArr :: (Type a, Num n, Ix n) => Data [a] -> Program (Arr n a)
+unsafeThawArr = Program . Imp.singleInj . UnsafeThawArr
+
+freezeArr :: (Type a, Num n, Ix n) => Arr n a -> Program (Data [a])
+freezeArr = Program . Imp.singleInj . FreezeArr
 
 -- | Conditional statement
 iff
@@ -154,7 +148,7 @@ class PrintfType r
 
 instance (a ~ ()) => PrintfType (Program a)
   where
-    fprf h form as = Program $ Imp.singleE $ Imp.FPrintf h form (reverse as)
+    fprf h form as = Program $ Imp.singleE $ FPrintf h form (reverse as)
 
 instance (PrintfArg a, PrintfType r) => PrintfType (Data a -> r)
   where
@@ -174,7 +168,7 @@ fget = Program . Imp.fget
 
 -- | Print to @stdout@. Accepts a variable number of arguments.
 printf :: PrintfType r => String -> r
-printf = fprintf stdout
+printf = fprintf Imp.stdout
 
 -- | Add an @#include@ statement to the generated code
 addInclude :: String -> Program ()
