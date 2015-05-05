@@ -37,12 +37,12 @@ run :: Program a -> IO a
 run = Imp.interpret . unProgram
 
 -- | Compile a program to C code represented as a string
-compileStr :: Program a -> String
-compileStr = show . prettyCGen . wrapMain . Imp.interpret . unProgram
+compile :: Program a -> String
+compile = show . prettyCGen . wrapMain . Imp.interpret . unProgram
 
 -- | Compile a program to C code and print it on the screen
-compile :: Program a -> IO ()
-compile = putStrLn . compileStr
+icompile :: Program a -> IO ()
+icompile = putStrLn . compile
 
 
 
