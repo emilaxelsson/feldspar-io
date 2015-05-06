@@ -4,7 +4,8 @@ module Simple where
 
 import Prelude ()
 
-import Feldspar hiding (getRef, setRef, newArr, getArr, setArr)
+import Feldspar hiding (newRef, getRef, setRef, newArr, getArr, setArr)
+import qualified Feldspar as Feld
 import Feldspar.SimpleVector
 import Feldspar.IO
 
@@ -31,4 +32,17 @@ arrProg = do
     setArr 23 (88 :: Data Int8) arr
     arr' <- freezeArr (arr :: Arr WordN Int8)
     printf "%d\n" (arr' ! 23)
+
+mut :: Data WordN -> M (Data WordN)
+mut l = return $ Feld.runMutable $ do
+    arr <- Feld.newArr_ l
+    Feld.forM l $ \i -> do
+        Feld.setArr arr i i
+    Feld.getArr arr 34
+
+mutProg :: Program ()
+mutProg = do
+    r <- initRef 100
+    l <- getRef r
+    printf "%d\n" =<< liftMut (mut l)
 

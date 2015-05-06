@@ -36,6 +36,7 @@ type FeldCMD
     :+: ChanCMD    Data
     :+: ThreadCMD
     :+: ArrConvCMD
+    :+: LiftMutCMD
 
 data ArrConvCMD (prog :: * -> *) a
   where
@@ -98,4 +99,34 @@ compArrConvCMD (FreezeArr a@(ArrComp arr)) = do
 
 instance Interp ArrConvCMD IO   where interp = runArrConvCMD
 instance Interp ArrConvCMD CGen where interp = compArrConvCMD
+
+
+
+data LiftMutCMD (prog :: * -> *) a
+  where
+    LiftMut :: Type a => Data (Mut a) -> LiftMutCMD prog (Data a)
+
+instance MapInstr LiftMutCMD
+  where
+    imap _ (LiftMut m) = LiftMut m
+
+instance DryInterp LiftMutCMD
+  where
+    dryInterp (LiftMut _) = liftM varExp fresh
+
+type instance IExp LiftMutCMD         = Data
+type instance IExp (LiftMutCMD :+: i) = Data
+
+runLiftMutCMD :: LiftMutCMD prog a -> IO a
+runLiftMutCMD (LiftMut m) = fmap litExp $ evalExp m
+
+compLiftMutCMD :: LiftMutCMD prog a -> CGen a
+compLiftMutCMD (LiftMut m) = do
+    (v,n) <- freshVar
+    exp   <- compExp m
+    addStm [cstm| $id:n = $exp; |]
+    return v
+
+instance Interp LiftMutCMD IO   where interp = runLiftMutCMD
+instance Interp LiftMutCMD CGen where interp = compLiftMutCMD
 

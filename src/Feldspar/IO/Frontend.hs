@@ -16,7 +16,7 @@ import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
 
-import Feldspar (Type, Data, WordN (..))
+import Feldspar (Type, Data, Syntax, WordN (..), desugar, sugar, M, runMutable)
 import Feldspar.IO.CMD
 
 
@@ -250,4 +250,12 @@ externProc proc args = Program $ Imp.externProc proc args
 -- | Get current time as number of seconds passed today
 getTime :: Program (Data Double)
 getTime = Program Imp.getTime
+
+liftMut :: Syntax a => M a -> Program a
+liftMut = fmap sugar . Program . Imp.singleInj . LiftMut . desugar . forceM
+  where
+    forceM :: Syntax a => M a -> M a
+    forceM = return . runMutable
+      -- Needed to be able to generate code. Otherwise the Feldspar compiler
+      -- complains about "Can only compile top-level lambda" (not sure why).
 
