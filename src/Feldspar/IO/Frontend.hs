@@ -81,8 +81,8 @@ unsafeFreezeRef :: Type a => Ref a -> Data a
 unsafeFreezeRef = Imp.unsafeFreezeRef
 
 -- | Create an uninitialized an array
-newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Data a -> Program (Arr i a)
-newArr n a = Program $ Imp.newArr n a
+newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Program (Arr i a)
+newArr n = Program $ Imp.newArr n
 
 -- | Set the contents of an array
 getArr :: (Type a, Integral i, Ix i) => Data i -> Arr i a -> Program (Data a)

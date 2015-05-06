@@ -4,7 +4,7 @@ module Simple where
 
 import Prelude ()
 
-import Feldspar hiding (getRef, setRef, newArr, getArr)
+import Feldspar hiding (getRef, setRef, newArr, getArr, setArr)
 import Feldspar.SimpleVector
 import Feldspar.IO
 
@@ -24,8 +24,9 @@ arrProg = do
     lr  <- initRef 20
     arr <- unsafeThawArr $ parallel (unsafeFreezeRef lr) (*2)
     e   <- getArr 18 (arr :: Arr WordN WordN)
-    printf "%d" e
-    arr  <- newArr 123 (88 :: Data Double)
-    arr' <- freezeArr (arr :: Arr WordN Double)
-    printf "%f" (arr' ! 23)
+    printf "%d\n" e
+    arr  <- newArr 123
+    setArr 23 (88 :: Data Int8) arr
+    arr' <- freezeArr (arr :: Arr WordN Int8)
+    printf "%d\n" (arr' ! 23)
 
