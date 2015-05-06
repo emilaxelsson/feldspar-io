@@ -14,6 +14,8 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
+    Feldspar.IO.CMD
+    Feldspar.IO.Frontend
     Feldspar.IO
 
   hs-source-dirs: src
@@ -22,17 +24,22 @@ library
 
   default-extensions:
     FlexibleInstances
+    GADTs
     GeneralizedNewtypeDeriving
+    MultiParamTypeClasses
     ScopedTypeVariables
+    StandaloneDeriving
     TypeFamilies
     TypeOperators
 
   build-depends:
-    base >=4.7 && <4.8,
+    array,
+    base < 4.9,
     feldspar-language,
     feldspar-compiler-shim,
     imperative-edsl,
-    language-c-quote
+    language-c-quote,
+    mainland-pretty
 
 test-suite Examples
   type: exitcode-stdio-1.0
@@ -46,4 +53,5 @@ test-suite Examples
   build-depends:
     base,
     feldspar-io,
-    feldspar-language
+    feldspar-language,
+    imperative-edsl
