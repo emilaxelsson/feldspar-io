@@ -7,7 +7,6 @@ import Prelude ()
 import Feldspar hiding (getRef, setRef, newArr, getArr)
 import Feldspar.SimpleVector
 import Feldspar.IO
-import Language.Embedded.Imperative (Arr, stdin) -- TODO Export from Feldspar.IO
 
 
 

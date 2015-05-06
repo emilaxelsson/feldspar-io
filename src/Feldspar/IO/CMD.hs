@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Feldspar.IO.Internal where
+module Feldspar.IO.CMD where
 
 
 
@@ -9,7 +9,6 @@ import Data.Array
 import Data.Array.IO
 import Data.List (genericLength)
 import Data.Typeable
-import Text.Printf (PrintfArg)
 
 import Language.C.Quote.C
 import Text.PrettyPrint.Mainland
@@ -24,10 +23,6 @@ import Feldspar
 import Feldspar.Compiler.FromImperative ()
 
 
-
-deriving instance PrintfArg WordN  -- TODO Should go into feldspar-language
-deriving instance Read WordN       -- TODO Should go into feldspar-language
-deriving instance Formattable WordN
 
 pData :: Proxy Data
 pData = Proxy

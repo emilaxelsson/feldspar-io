@@ -14,7 +14,8 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-    Feldspar.IO.Internal
+    Feldspar.IO.CMD
+    Feldspar.IO.Frontend
     Feldspar.IO
 
   hs-source-dirs: src
