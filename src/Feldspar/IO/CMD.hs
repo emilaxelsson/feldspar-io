@@ -89,9 +89,11 @@ compArrConvCMD (UnsafeThawArr arr) = do
     addLocal [cdecl| $ty:t * $id:sym; |]
     addStm   [cstm| $id:sym = &at($id:tsym, $arre, 0); |]
     return $ ArrComp sym
-compArrConvCMD (FreezeArr (ArrComp arr)) = do
+compArrConvCMD (FreezeArr a@(ArrComp arr)) = do
     (v,n) <- freshVar
---     addLocal [cdecl| struct array * $id:n = NULL; |]
+    t     <- compTypePP pData a
+    addStm [cstm| $id:n = initArray($id:n, sizeof($ty:t), sizeof($id:arr)); |]
+    addStm [cstm| memcpy($id:n->buffer, $id:arr, sizeof($id:arr)); |]
     return v
 
 instance Interp ArrConvCMD IO   where interp = runArrConvCMD
