@@ -1,23 +1,21 @@
+{-# LANGUAGE CPP #-}
+
 module Feldspar.IO where
 
 
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Data.Ix
 import Data.Proxy
 
-import qualified Language.C.Syntax as C
-
 import qualified Control.Monad.Operational.Compositional as Imp
-import Language.C.Monad
-import Language.Embedded.Imperative.CMD
+import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Types
-import Language.Embedded.Imperative (Any)
 import qualified Language.Embedded.Imperative as Imp
 
 import Feldspar (Type, Data)
-import Feldspar.Compiler.FromImperative ()
-import Language.Embedded.Backend.C ()
 import Feldspar.IO.Internal
 
 
@@ -38,7 +36,7 @@ run = Imp.interpret . unProgram
 
 -- | Compile a program to C code represented as a string
 compile :: Program a -> String
-compile = show . prettyCGen . wrapMain . Imp.interpret . unProgram
+compile = Imp.compile . unProgram
 
 -- | Compile a program to C code and print it on the screen
 icompile :: Program a -> IO ()
@@ -144,13 +142,13 @@ feof = Program . Imp.feof
 
 class PrintfType r
   where
-    fprf :: Handle -> String -> [FunArg PrintfArg Data] -> r
+    fprf :: Handle -> String -> [FunArg Formattable Data] -> r
 
 instance (a ~ ()) => PrintfType (Program a)
   where
     fprf h form as = Program $ Imp.singleE $ FPrintf h form (reverse as)
 
-instance (PrintfArg a, PrintfType r) => PrintfType (Data a -> r)
+instance (Formattable a, PrintfType r) => PrintfType (Data a -> r)
   where
     fprf h form as = \a -> fprf h form (ValArg a : as)
 
@@ -159,11 +157,11 @@ fprintf :: PrintfType r => Handle -> String -> r
 fprintf h format = fprf h format []
 
 -- | Put a single value to a handle
-fput :: PrintfArg a => Handle -> Data a -> Program ()
+fput :: Formattable a => Handle -> Data a -> Program ()
 fput hdl a = Program $ Imp.fprintf hdl "%f" a
 
 -- | Get a single value from a handle
-fget :: (Read a, Scannable a, Type a) => Handle -> Program (Data a)
+fget :: (Formattable a, Type a) => Handle -> Program (Data a)
 fget = Program . Imp.fget
 
 -- | Print to @stdout@. Accepts a variable number of arguments.
@@ -195,7 +193,7 @@ addInclude = Program . Imp.addInclude
 -- >           // goes here
 -- >       }
 -- >       |]
-addDefinition :: C.Definition -> Program ()
+addDefinition :: Definition -> Program ()
 addDefinition = Program . Imp.addDefinition
 
 addExternFun :: forall proxy res . Type res
