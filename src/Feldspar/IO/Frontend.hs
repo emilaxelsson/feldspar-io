@@ -165,7 +165,7 @@ fprintf h format = fprf h format []
 
 -- | Put a single value to a handle
 fput :: Formattable a => Handle -> Data a -> Program ()
-fput hdl a = Program $ Imp.fprintf hdl "%f" a
+fput h = Program . Imp.fput h
 
 -- | Get a single value from a handle
 fget :: (Formattable a, Type a) => Handle -> Program (Data a)
