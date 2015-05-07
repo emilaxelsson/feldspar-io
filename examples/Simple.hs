@@ -34,7 +34,7 @@ arrProg = do
     printf "%d\n" (arr' ! 23)
 
 mut :: Data WordN -> M (Data WordN)
-mut l = return $ Feld.runMutable $ do
+mut l = do
     arr <- Feld.newArr_ l
     Feld.forM l $ \i -> do
         Feld.setArr arr i i
