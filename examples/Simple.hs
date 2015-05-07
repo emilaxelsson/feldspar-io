@@ -19,19 +19,21 @@ prog = while (return true) $ do
     end <- feof stdin
     iff end break (return ())
     o <- ifE (i > 0)
-        (return $ kernel (cap (Range 1 maxBound) i))
+        (return $ kernel (guaranteePositive i))
         (return 0)
     printf "Sum of squares: %d\n" o
+  where
+    guaranteePositive = cap (Range 1 maxBound)
 
 arrProg = do
     lr  <- initRef 20
-    arr <- unsafeThawArr $ parallel (unsafeFreezeRef lr) (*2)
-    e   <- getArr 18 (arr :: Arr WordN WordN)
+    arr1 :: Arr WordN WordN <- unsafeThawArr $ parallel (unsafeFreezeRef lr) (*2)
+    e   <- getArr 18 arr1
     printf "%d\n" e
-    arr  <- newArr 123
-    setArr 23 (88 :: Data Int8) arr
-    arr' <- freezeArr (arr :: Arr WordN Int8)
-    printf "%d\n" (arr' ! 23)
+    arr2 :: Arr WordN Int8 <- newArr 123
+    setArr 23 88 arr2
+    farr <- freezeArr arr2
+    printf "%d\n" (farr ! 23)
 
 mut :: Data WordN -> M (Data WordN)
 mut l = do
