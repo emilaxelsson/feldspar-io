@@ -17,6 +17,7 @@ library
     Feldspar.IO.CMD
     Feldspar.IO.Frontend
     Feldspar.IO
+    Feldspar.Concurrent
 
   hs-source-dirs: src
 
