@@ -41,11 +41,27 @@ newtype Program a = Program {unProgram :: Imp.Program FeldCMD a}
 run :: Program a -> IO a
 run = Imp.interpret . unProgram
 
--- | Compile a program to C code represented as a string
+-- | Compile a program to C code represented as a string. To compile the
+-- resulting C code, use
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
+--
+-- For programs that make use of the primitives in "Feldspar.Concurrent", some
+-- extra flags are needed:
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
 compile :: Program a -> String
 compile = Imp.compile . unProgram
 
--- | Compile a program to C code and print it on the screen
+-- | Compile a program to C code and print it on the screen. To compile the
+-- resulting C code, use
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
+--
+-- For programs that make use of the primitives in "Feldspar.Concurrent", some
+-- extra flags are needed:
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
 icompile :: Program a -> IO ()
 icompile = putStrLn . compile
 
