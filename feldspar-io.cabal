@@ -16,6 +16,7 @@ library
   exposed-modules:
     Feldspar.IO.CMD
     Feldspar.IO.Frontend
+    Feldspar.IO.Mutable
     Feldspar.IO
     Feldspar.Concurrent
 

@@ -16,8 +16,7 @@ import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
 
-import Feldspar (Type, Data, Syntax, WordN (..))
-import Feldspar.Mutable (M, runMutable)
+import Feldspar (Type, Data, WordN (..))
 import Feldspar.IO.CMD
 
 
@@ -272,7 +271,4 @@ externProc proc args = Program $ Imp.externProc proc args
 -- | Get current time as number of seconds passed today
 getTime :: Program (Data Double)
 getTime = Program Imp.getTime
-
-liftMut :: Syntax a => M a -> Program a
-liftMut = return . runMutable
 

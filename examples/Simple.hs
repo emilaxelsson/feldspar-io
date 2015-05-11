@@ -8,6 +8,7 @@ import Feldspar
 import qualified Feldspar.Mutable as Feld
 import Feldspar.SimpleVector
 import Feldspar.IO
+import Feldspar.IO.Mutable
 
 
 
