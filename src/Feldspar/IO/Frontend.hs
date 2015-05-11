@@ -90,7 +90,7 @@ setRef r = Program . Imp.setRef r
 
 -- | Modify the contents of reference
 modifyRef :: Type a => Ref a -> (Data a -> Data a) -> Program ()
-modifyRef r f = getRef r >>= setRef r . f
+modifyRef r f = Program $ Imp.modifyRef r f
 
 -- | Freeze the contents of reference (only safe if the reference is never written to after the
 -- first action that makes use of the resulting expression)
