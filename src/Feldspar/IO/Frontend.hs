@@ -16,7 +16,8 @@ import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
 
-import Feldspar (Type, Data, Syntax, WordN (..), M, runMutable)
+import Feldspar (Type, Data, Syntax, WordN (..))
+import Feldspar.Mutable (M, runMutable)
 import Feldspar.IO.CMD
 
 
