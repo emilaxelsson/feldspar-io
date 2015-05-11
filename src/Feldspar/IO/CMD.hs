@@ -32,6 +32,7 @@ type FeldCMD
     :+: ArrCMD     Data
     :+: ControlCMD Data
     :+: FileCMD    Data
+    :+: ObjectCMD
     :+: CallCMD    Data
     :+: ChanCMD    Data
     :+: ThreadCMD
@@ -41,7 +42,7 @@ data ArrConvCMD (prog :: * -> *) a
   where
     ThawArr       :: (Type a, Num n, Ix n) => Data [a] -> ArrConvCMD prog (Arr n a)
     UnsafeThawArr :: (Type a, Num n, Ix n) => Data [a] -> ArrConvCMD prog (Arr n a)
-    FreezeArr :: (Type a, Ix n)        => Arr n a -> ArrConvCMD prog (Data [a])
+    FreezeArr     :: (Type a, Ix n)        => Arr n a  -> ArrConvCMD prog (Data [a])
 #if  __GLASGOW_HASKELL__>=708
   deriving Typeable
 #endif

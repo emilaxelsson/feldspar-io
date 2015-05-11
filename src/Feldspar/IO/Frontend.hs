@@ -192,6 +192,11 @@ fget = Program . Imp.fget
 printf :: PrintfType r => String -> r
 printf = fprintf Imp.stdout
 
+newObject
+    :: String  -- ^ Object type
+    -> Program Object
+newObject = Program . Imp.newObject
+
 -- | Add an @#include@ statement to the generated code
 addInclude :: String -> Program ()
 addInclude = Program . Imp.addInclude
