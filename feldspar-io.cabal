@@ -41,7 +41,7 @@ library
     feldspar-compiler-shim,
     imperative-edsl,
     language-c-quote,
-    mainland-pretty
+    mainland-pretty < 0.4
 
 test-suite Examples
   type: exitcode-stdio-1.0
