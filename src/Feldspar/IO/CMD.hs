@@ -76,7 +76,7 @@ compArrConvCMD (ThawArr arr) = do
     arre <- compExp arr
     sym  <- gensym "a"
     t    <- compTypePP2 pData arr
-    let tsym = show $ ppr t
+    let tsym = pretty 80 $ ppr t
         lene = [cexp| getLength( $arre ) |]
     addLocal [cdecl| $ty:t * $id:sym; |]
     addStm   [cstm| $id:sym = calloc( $lene, sizeof($id:tsym) ); |]
@@ -86,7 +86,7 @@ compArrConvCMD (UnsafeThawArr arr) = do
     arre <- compExp arr
     sym  <- gensym "a"
     t    <- compTypePP2 pData arr
-    let tsym = show $ ppr t
+    let tsym = pretty 80 $ ppr t
     addLocal [cdecl| $ty:t * $id:sym; |]
     addStm   [cstm| $id:sym = &at($id:tsym, $arre, 0); |]
     return $ ArrComp sym
