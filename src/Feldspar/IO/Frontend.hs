@@ -147,6 +147,22 @@ whileE :: Type a
     -> Program (Data a)
 whileE b t = Program $ Imp.whileE (unProgram b) (unProgram t)
 
+-- | For loop
+for :: (Integral n, Type n)
+    => Data n                  -- ^ Start index
+    -> Data n                  -- ^ Stop index
+    -> (Data n -> Program ())  -- ^ Loop body
+    -> Program ()
+for lo hi body = Program $ Imp.for lo hi (unProgram . body)
+
+-- | For loop
+forE :: (Integral n, Type n, Type a)
+    => Data n                        -- ^ Start index
+    -> Data n                        -- ^ Stop index
+    -> (Data n -> Program (Data a))  -- ^ Loop body
+    -> Program (Data a)
+forE lo hi body = Program $ Imp.forE lo hi (unProgram . body)
+
 -- | Break out from a loop
 break :: Program ()
 break = Program Imp.break

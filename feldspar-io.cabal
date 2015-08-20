@@ -14,10 +14,10 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
+    Feldspar.IO
     Feldspar.IO.CMD
     Feldspar.IO.Frontend
     Feldspar.IO.Mutable
-    Feldspar.IO
     Feldspar.Concurrent
 
   hs-source-dirs: src
