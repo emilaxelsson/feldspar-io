@@ -180,8 +180,13 @@ fprintf :: PrintfType r => Handle -> String -> r
 fprintf h format = fprf h format []
 
 -- | Put a single value to a handle
-fput :: Formattable a => Handle -> Data a -> Program ()
-fput h = Program . Imp.fput h
+fput :: Formattable a
+    => Handle
+    -> String  -- Prefix
+    -> Data a  -- Expression to print
+    -> String  -- Suffix
+    -> Program ()
+fput h pre a post = Program $ Imp.fput h pre a post
 
 -- | Get a single value from a handle
 fget :: (Formattable a, Type a) => Handle -> Program (Data a)
