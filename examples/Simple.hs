@@ -33,7 +33,7 @@ arrProg = do
     printf "%d\n" e
     arr2 :: Arr WordN Int8 <- newArr 123
     setArr 23 88 arr2
-    farr <- freezeArr arr2
+    farr <- freezeArr arr2 123
     printf "%d\n" (farr ! 23)
 
 mut :: Data WordN -> Feld.M (Data WordN)
