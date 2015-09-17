@@ -114,8 +114,8 @@ thawArr = Program . Imp.singleInj . ThawArr
 unsafeThawArr :: (Type a, Num n, Ix n) => Data [a] -> Program (Arr n a)
 unsafeThawArr = Program . Imp.singleInj . UnsafeThawArr
 
-freezeArr :: (Type a, Num n, Ix n) => Arr n a -> Program (Data [a])
-freezeArr = Program . Imp.singleInj . FreezeArr
+freezeArr :: (Type a, Num n, Ix n) => Arr n a -> Data n -> Program (Data [a])
+freezeArr a n = Program $ Imp.singleInj $ FreezeArr a n
 
 -- | Conditional statement
 iff

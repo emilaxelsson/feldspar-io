@@ -42,7 +42,7 @@ data ArrConvCMD (prog :: * -> *) a
   where
     ThawArr       :: (Type a, Num n, Ix n) => Data [a] -> ArrConvCMD prog (Arr n a)
     UnsafeThawArr :: (Type a, Num n, Ix n) => Data [a] -> ArrConvCMD prog (Arr n a)
-    FreezeArr     :: (Type a, Ix n)        => Arr n a  -> ArrConvCMD prog (Data [a])
+    FreezeArr     :: (Type a, Ix n)        => Arr n a  -> Data n -> ArrConvCMD prog (Data [a])
 #if  __GLASGOW_HASKELL__>=708
   deriving Typeable
 #endif
@@ -51,13 +51,13 @@ instance MapInstr ArrConvCMD
   where
     imap _ (ThawArr arr)       = ThawArr arr
     imap _ (UnsafeThawArr arr) = UnsafeThawArr arr
-    imap _ (FreezeArr arr)     = FreezeArr arr
+    imap _ (FreezeArr arr n)   = FreezeArr arr n
 
 instance DryInterp ArrConvCMD
   where
     dryInterp (ThawArr _)       = liftM ArrComp $ freshStr "a"
     dryInterp (UnsafeThawArr _) = liftM ArrComp $ freshStr "a"
-    dryInterp (FreezeArr _)     = liftM varExp fresh
+    dryInterp (FreezeArr _ _)   = liftM varExp fresh
 
 type instance IExp ArrConvCMD         = Data
 type instance IExp (ArrConvCMD :+: i) = Data
@@ -66,8 +66,8 @@ runArrConvCMD :: ArrConvCMD prog a -> IO a
 runArrConvCMD (ThawArr arr) = fmap ArrEval $ thaw' $ evalExp arr
   where
     thaw' as = newListArray (0, genericLength as - 1) as
-runArrConvCMD (UnsafeThawArr arr) = runArrConvCMD (ThawArr arr)
-runArrConvCMD (FreezeArr (ArrEval arr)) = fmap litExp $ freeze' arr
+runArrConvCMD (UnsafeThawArr arr)         = runArrConvCMD (ThawArr arr)
+runArrConvCMD (FreezeArr (ArrEval arr) n) = fmap litExp $ freeze' arr -- TODO n?
   where
     freeze' arr = fmap elems $ freeze arr
 
@@ -90,11 +90,12 @@ compArrConvCMD (UnsafeThawArr arr) = do
     addLocal [cdecl| $ty:t * $id:sym; |]
     addStm   [cstm| $id:sym = &at($id:tsym, $arre, 0); |]
     return $ ArrComp sym
-compArrConvCMD (FreezeArr a@(ArrComp arr)) = do
+compArrConvCMD (FreezeArr a@(ArrComp arr) l) = do
     (v,n) <- freshVar
     t     <- compTypePP pData a
-    addStm [cstm| $id:n = initArray($id:n, sizeof($ty:t), sizeof($id:arr)); |]
-    addStm [cstm| memcpy($id:n->buffer, $id:arr, sizeof($id:arr)); |]
+    le    <- compExp l
+    addStm [cstm| $id:n = initArray($id:n, sizeof($ty:t), $le); |]
+    addStm [cstm| memcpy($id:n->buffer, $id:arr, $le*sizeof($ty:t)); |]
     return v
 
 instance Interp ArrConvCMD IO   where interp = runArrConvCMD
