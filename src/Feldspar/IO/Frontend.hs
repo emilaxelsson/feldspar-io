@@ -9,7 +9,12 @@ import Control.Applicative
 #endif
 import Data.Ix
 import Data.Proxy
+import Data.Time (getCurrentTime)
 import Text.Printf (PrintfArg)
+import System.Directory (getTemporaryDirectory)
+import System.Exit (ExitCode)
+import System.FilePath ((</>))
+import System.Process (system)
 
 import qualified Control.Monad.Operational.Compositional as Imp
 import Language.Embedded.Imperative.CMD (FileCMD (..))
@@ -42,7 +47,7 @@ run :: Program a -> IO a
 run = Imp.interpret . unProgram
 
 -- | Compile a program to C code represented as a string. To compile the
--- resulting C code, use
+-- resulting C code, use something like
 --
 -- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
 --
@@ -54,7 +59,7 @@ compile :: Program a -> String
 compile = Imp.compile . unProgram
 
 -- | Compile a program to C code and print it on the screen. To compile the
--- resulting C code, use
+-- resulting C code, use something like
 --
 -- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
 --
@@ -64,6 +69,34 @@ compile = Imp.compile . unProgram
 -- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
 icompile :: Program a -> IO ()
 icompile = putStrLn . compile
+
+-- | Generate C code, use GCC to compile it, and run the resulting executable
+--
+-- (The flag @"-std=c99"@ is passed to GCC automatically.)
+compileAndRun
+    :: String     -- ^ GCC flags (e.g. @"-Ipath"@)
+    -> Program a  -- ^ Program to run
+    -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
+    -> IO ExitCode
+compileAndRun flags prog libs = do
+    tmp <- getTemporaryDirectory
+    t   <- fmap (map spaceToUnderscore . show) getCurrentTime
+    let name  = tmp </> "feldspar-io-generated-" ++ t
+    let cname = name ++ ".c"
+    writeFile cname $ compile prog
+    putStrLn $ "Created temporary file: " ++ cname
+    let compileCMD = unwords $
+          ["gcc -std=c99", flags, cname, "-o", name] ++ libFlags
+    putStrLn compileCMD
+    system compileCMD
+    putStrLn ""
+    putStrLn "#### Now running:"
+    putStrLn name
+    system name  -- Run the executable
+  where
+    spaceToUnderscore ' ' = '_'
+    spaceToUnderscore c   = c
+    libFlags = ["-l" ++ lib | lib <- libs]
 
 
 

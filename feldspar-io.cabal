@@ -37,11 +37,15 @@ library
   build-depends:
     array,
     base < 4.9,
+    directory,
     feldspar-language,
     feldspar-compiler-shim,
+    filepath,
     imperative-edsl,
     language-c-quote >= 0.11 && < 0.12,
-    mainland-pretty >= 0.4 && < 0.5
+    mainland-pretty >= 0.4 && < 0.5,
+    process,
+    time
 
 test-suite Examples
   type: exitcode-stdio-1.0
