@@ -100,7 +100,7 @@ compileC flags prog libs = do
     spaceToUnderscore c   = c
     libFlags = ["-l" ++ lib | lib <- libs]
 
--- | Generate C code and use GCC to check that it compiles
+-- | Generate C code and use GCC to check that it compiles (no linking)
 --
 -- (The flag @"-std=c99"@ is passed to GCC automatically.)
 compileAndCheck
