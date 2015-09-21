@@ -70,6 +70,41 @@ compile = Imp.compile . unProgram
 icompile :: Program a -> IO ()
 icompile = putStrLn . compile
 
+-- | Generate C code and use GCC to compile it
+--
+-- (The flag @"-std=c99"@ is passed to GCC automatically.)
+compileC
+    :: String       -- ^ GCC flags (e.g. @"-Ipath"@)
+    -> Program a    -- ^ Program to compile
+    -> [String]     -- ^ Extra libraries (e.g. @["m","pthread"]@)
+    -> IO FilePath  -- ^ Path to the generated executable
+compileC flags prog libs = do
+    tmp <- getTemporaryDirectory
+    t   <- fmap (map spaceToUnderscore . show) getCurrentTime
+    let exe   = tmp </> "feldspar-io-generated-" ++ t
+    let cfile = exe ++ ".c"
+    writeFile cfile $ compile prog
+    putStrLn $ "Created temporary file: " ++ cfile
+    let compileCMD = unwords $
+          ["gcc -std=c99", flags, cfile, "-o", exe] ++ libFlags
+    putStrLn compileCMD
+    system compileCMD
+    return exe
+  where
+    spaceToUnderscore ' ' = '_'
+    spaceToUnderscore c   = c
+    libFlags = ["-l" ++ lib | lib <- libs]
+
+-- | Generate C code and use GCC to check that it compiles
+--
+-- (The flag @"-std=c99"@ is passed to GCC automatically.)
+compileAndCheck
+    :: String     -- ^ GCC flags (e.g. @"-Ipath"@)
+    -> Program a  -- ^ Program to compile
+    -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
+    -> IO FilePath
+compileAndCheck flags prog libs = compileC ("-c " ++ flags) prog libs
+
 -- | Generate C code, use GCC to compile it, and run the resulting executable
 --
 -- (The flag @"-std=c99"@ is passed to GCC automatically.)
@@ -79,24 +114,11 @@ compileAndRun
     -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
     -> IO ExitCode
 compileAndRun flags prog libs = do
-    tmp <- getTemporaryDirectory
-    t   <- fmap (map spaceToUnderscore . show) getCurrentTime
-    let name  = tmp </> "feldspar-io-generated-" ++ t
-    let cname = name ++ ".c"
-    writeFile cname $ compile prog
-    putStrLn $ "Created temporary file: " ++ cname
-    let compileCMD = unwords $
-          ["gcc -std=c99", flags, cname, "-o", name] ++ libFlags
-    putStrLn compileCMD
-    system compileCMD
+    exe <- compileC flags prog libs
     putStrLn ""
     putStrLn "#### Now running:"
-    putStrLn name
-    system name  -- Run the executable
-  where
-    spaceToUnderscore ' ' = '_'
-    spaceToUnderscore c   = c
-    libFlags = ["-l" ++ lib | lib <- libs]
+    putStrLn exe
+    system exe
 
 
 
