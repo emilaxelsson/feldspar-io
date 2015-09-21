@@ -12,7 +12,7 @@ import Data.Proxy
 import Data.Time (getCurrentTime)
 import Text.Printf (PrintfArg)
 import System.Directory (getTemporaryDirectory)
-import System.Exit (ExitCode)
+import System.Exit (ExitCode (..))
 import System.FilePath ((</>))
 import System.Process (system)
 
@@ -91,8 +91,10 @@ compileC flags prog libs = do
           ++ [cfile, "-o", exe]
           ++ libFlags
     putStrLn compileCMD
-    system compileCMD
-    return exe
+    exit <- system compileCMD
+    case exit of
+      ExitSuccess -> return exe
+      err -> error $ show err
   where
     spaceToUnderscore ' ' = '_'
     spaceToUnderscore c   = c
@@ -115,13 +117,14 @@ compileAndRun
     :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a  -- ^ Program to run
     -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
-    -> IO ExitCode
+    -> IO ()
 compileAndRun flags prog libs = do
     exe <- compileC flags prog libs
     putStrLn ""
     putStrLn "#### Now running:"
     putStrLn exe
     system exe
+    return ()
 
 
 
