@@ -74,7 +74,7 @@ icompile = putStrLn . compile
 --
 -- (The flag @"-std=c99"@ is passed to GCC automatically.)
 compileC
-    :: String       -- ^ GCC flags (e.g. @"-Ipath"@)
+    :: [String]     -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a    -- ^ Program to compile
     -> [String]     -- ^ Extra libraries (e.g. @["m","pthread"]@)
     -> IO FilePath  -- ^ Path to the generated executable
@@ -85,8 +85,11 @@ compileC flags prog libs = do
     let cfile = exe ++ ".c"
     writeFile cfile $ compile prog
     putStrLn $ "Created temporary file: " ++ cfile
-    let compileCMD = unwords $
-          ["gcc -std=c99", flags, cfile, "-o", exe] ++ libFlags
+    let compileCMD = unwords
+          $  ["gcc -std=c99"]
+          ++ flags
+          ++ [cfile, "-o", exe]
+          ++ libFlags
     putStrLn compileCMD
     system compileCMD
     return exe
@@ -99,17 +102,17 @@ compileC flags prog libs = do
 --
 -- (The flag @"-std=c99"@ is passed to GCC automatically.)
 compileAndCheck
-    :: String     -- ^ GCC flags (e.g. @"-Ipath"@)
+    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a  -- ^ Program to compile
     -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
     -> IO FilePath
-compileAndCheck flags prog libs = compileC ("-c " ++ flags) prog libs
+compileAndCheck flags prog libs = compileC ("-c":flags) prog libs
 
 -- | Generate C code, use GCC to compile it, and run the resulting executable
 --
 -- (The flag @"-std=c99"@ is passed to GCC automatically.)
 compileAndRun
-    :: String     -- ^ GCC flags (e.g. @"-Ipath"@)
+    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a  -- ^ Program to run
     -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
     -> IO ExitCode
