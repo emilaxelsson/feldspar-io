@@ -22,6 +22,7 @@ import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
 
 import Feldspar (Type, Data, WordN (..))
+import Feldspar.Compiler.FromImperative (feldsparCIncludes)
 import Feldspar.IO.CMD
 
 
@@ -54,7 +55,7 @@ run = Imp.interpret . unProgram
 -- For programs that make use of the primitives in "Feldspar.Concurrent", some
 -- extra flags are needed:
 --
--- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
 compile :: Program a -> String
 compile = Imp.compile . unProgram
 
@@ -66,13 +67,14 @@ compile = Imp.compile . unProgram
 -- For programs that make use of the primitives in "Feldspar.Concurrent", some
 -- extra flags are needed:
 --
--- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
 icompile :: Program a -> IO ()
 icompile = putStrLn . compile
 
 -- | Generate C code and use GCC to compile it
 --
--- (The flag @"-std=c99"@ is passed to GCC automatically.)
+-- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
+-- to GCC automatically.)
 compileC
     :: [String]     -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a    -- ^ Program to compile
@@ -85,8 +87,9 @@ compileC flags prog libs = do
     let cfile = exe ++ ".c"
     writeFile cfile $ compile prog
     putStrLn $ "Created temporary file: " ++ cfile
+    feldLib <- feldsparCIncludes
     let compileCMD = unwords
-          $  ["gcc -std=c99"]
+          $  ["gcc", "-std=c99", "-I" ++ feldLib]
           ++ flags
           ++ [cfile, "-o", exe]
           ++ libFlags
@@ -102,7 +105,8 @@ compileC flags prog libs = do
 
 -- | Generate C code and use GCC to check that it compiles (no linking)
 --
--- (The flag @"-std=c99"@ is passed to GCC automatically.)
+-- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
+-- to GCC automatically.)
 compileAndCheck
     :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a  -- ^ Program to compile
@@ -112,7 +116,8 @@ compileAndCheck flags prog libs = compileC ("-c":flags) prog libs
 
 -- | Generate C code, use GCC to compile it, and run the resulting executable
 --
--- (The flag @"-std=c99"@ is passed to GCC automatically.)
+-- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
+-- to GCC automatically.)
 compileAndRun
     :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
     -> Program a  -- ^ Program to run
