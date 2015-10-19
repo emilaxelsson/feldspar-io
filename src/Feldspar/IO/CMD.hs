@@ -47,11 +47,11 @@ data ArrConvCMD (prog :: * -> *) a
   deriving Typeable
 #endif
 
-instance MapInstr ArrConvCMD
+instance HFunctor ArrConvCMD
   where
-    imap _ (ThawArr arr)       = ThawArr arr
-    imap _ (UnsafeThawArr arr) = UnsafeThawArr arr
-    imap _ (FreezeArr arr n)   = FreezeArr arr n
+    hfmap _ (ThawArr arr)       = ThawArr arr
+    hfmap _ (UnsafeThawArr arr) = UnsafeThawArr arr
+    hfmap _ (FreezeArr arr n)   = FreezeArr arr n
 
 instance DryInterp ArrConvCMD
   where
