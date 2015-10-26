@@ -16,7 +16,7 @@ import System.Exit (ExitCode (..))
 import System.FilePath ((</>))
 import System.Process (system)
 
-import qualified Control.Monad.Operational.Compositional as Imp
+import qualified Control.Monad.Operational.Higher as Imp
 import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp

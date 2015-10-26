@@ -13,9 +13,11 @@ import Data.Typeable
 import Language.C.Quote.C
 import Text.PrettyPrint.Mainland
 
-import Control.Monad.Operational.Compositional
+import Control.Monads
+import Control.Monad.Operational.Higher
 import Language.C.Monad
 import Language.Embedded.Expression
+import Language.Embedded.Traversal
 import Language.Embedded.Imperative.CMD
 import Language.Embedded.Concurrent
 
