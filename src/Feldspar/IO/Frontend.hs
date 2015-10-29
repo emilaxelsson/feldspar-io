@@ -295,6 +295,13 @@ initObject
     -> Program Object
 initObject fun ty args = Program $ Imp.initObject fun ty args
 
+initUObject
+    :: String            -- ^ Function name
+    -> String            -- ^ Object type
+    -> [FunArg Any Data] -- ^ Arguments
+    -> Program Object
+initUObject fun ty args = Program $ Imp.initUObject fun ty args
+
 
 -- | Add an @#include@ statement to the generated code
 addInclude :: String -> Program ()
