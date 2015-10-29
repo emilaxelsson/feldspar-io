@@ -288,6 +288,14 @@ newObject
     -> Program Object
 newObject = Program . Imp.newObject
 
+initObject
+    :: String            -- ^ Function name
+    -> String            -- ^ Object type
+    -> [FunArg Any Data] -- ^ Arguments
+    -> Program Object
+initObject fun ty args = Program $ Imp.initObject fun ty args
+
+
 -- | Add an @#include@ statement to the generated code
 addInclude :: String -> Program ()
 addInclude = Program . Imp.addInclude

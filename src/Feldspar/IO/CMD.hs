@@ -34,7 +34,7 @@ type FeldCMD
     :+: ArrCMD     Data
     :+: ControlCMD Data
     :+: FileCMD    Data
-    :+: ObjectCMD
+    :+: ObjectCMD  Data
     :+: CallCMD    Data
     :+: ChanCMD    Data
     :+: ThreadCMD
