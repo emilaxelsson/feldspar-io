@@ -159,13 +159,13 @@ modifyRef r f = Program $ Imp.modifyRef r f
 
 -- | Freeze the contents of reference (only safe if the reference is never written to after the
 -- first action that makes use of the resulting expression)
-unsafeFreezeRef :: Type a => Ref a -> Data a
-unsafeFreezeRef = Imp.unsafeFreezeRef
+unsafeFreezeRef :: Type a => Ref a -> Program (Data a)
+unsafeFreezeRef = Program . Imp.unsafeFreezeRef
 
 -- | Compute and share a value. Like 'share' but using the 'Program' monad
 -- instead of a higher-order interface.
 shareVal :: Type a => Data a -> Program (Data a)
-shareVal a = fmap unsafeFreezeRef $ initRef a
+shareVal a = initRef a >>= unsafeFreezeRef
 
 -- | Create an uninitialized an array
 newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Program (Arr i a)

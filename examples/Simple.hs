@@ -27,9 +27,10 @@ prog = while (return true) $ do
     guaranteePositive = cap (Range 1 maxBound)
 
 arrProg = do
-    lr  <- initRef 20
-    arr1 :: Arr WordN WordN <- unsafeThawArr $ parallel (unsafeFreezeRef lr) (*2)
-    e   <- getArr 18 arr1
+    lr <- initRef 20
+    l  <- unsafeFreezeRef lr
+    arr1 :: Arr WordN WordN <- unsafeThawArr $ parallel l (*2)
+    e <- getArr 18 arr1
     printf "%d\n" e
     arr2 :: Arr WordN Int8 <- newArr 123
     setArr 23 88 arr2
