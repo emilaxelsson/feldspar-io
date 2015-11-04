@@ -60,6 +60,9 @@ test-suite Examples
   default-extensions:
     ScopedTypeVariables
 
+  other-modules:
+    Simple
+
   build-depends:
     base,
     feldspar-io,
