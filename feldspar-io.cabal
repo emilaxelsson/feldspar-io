@@ -1,7 +1,7 @@
 name:                feldspar-io
 version:             0.1
 synopsis:            An "IO monad" for Feldspar
--- description:
+description:         IO, references, concurrency, FFI, etc. for Feldspar
 license:             BSD3
 license-file:        LICENSE
 author:              Emil Axelsson
