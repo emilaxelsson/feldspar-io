@@ -1,6 +1,6 @@
+[![Build Status](https://travis-ci.org/emilaxelsson/feldspar-io.png)](https://travis-ci.org/emilaxelsson/feldspar-io)
+
 An "IO monad" for Feldspar
-
-
 
 # Building with GHCi
 
