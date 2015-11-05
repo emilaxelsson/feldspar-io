@@ -12,6 +12,10 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
+source-repository head
+  type:     git
+  location: git@github.com:emilaxelsson/feldspar-io.git
+
 library
   exposed-modules:
     Feldspar.IO
