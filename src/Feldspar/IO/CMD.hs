@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Feldspar.IO.CMD where
@@ -9,6 +10,10 @@ import Data.Array
 import Data.Array.IO
 import Data.List (genericLength)
 import Data.Typeable
+
+#if __GLASGOW_HASKELL__ < 708
+import Data.Proxy
+#endif
 
 import Language.C.Quote.C
 import Text.PrettyPrint.Mainland

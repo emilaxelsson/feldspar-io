@@ -46,6 +46,8 @@ library
     mainland-pretty >= 0.4 && < 0.5,
     operational-alacarte,
     process,
+    tagged,
+      -- tagged needed by GHC 7.6
     time
 
 test-suite Examples
