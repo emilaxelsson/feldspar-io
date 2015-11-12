@@ -252,7 +252,7 @@ feof = Program . Imp.feof
 
 class PrintfType r
   where
-    fprf :: Handle -> String -> [FunArg Formattable Data] -> r
+    fprf :: Handle -> String -> [Imp.PrintfArg Data] -> r
 
 instance (a ~ ()) => PrintfType (Program a)
   where
@@ -260,7 +260,7 @@ instance (a ~ ()) => PrintfType (Program a)
 
 instance (Formattable a, PrintfType r) => PrintfType (Data a -> r)
   where
-    fprf h form as = \a -> fprf h form (ValArg a : as)
+    fprf h form as = \a -> fprf h form (Imp.printfArg a : as)
 
 -- | Print to a handle. Accepts a variable number of arguments.
 fprintf :: PrintfType r => Handle -> String -> r
@@ -379,3 +379,23 @@ externProc proc args = Program $ Imp.externProc proc args
 getTime :: Program (Data Double)
 getTime = Program Imp.getTime
 
+strArg :: String -> FunArg Any Data
+strArg = Imp.strArg
+
+valArg :: Type a => Data a -> FunArg Any Data
+valArg = Imp.valArg
+
+refArg :: Type a => Ref a -> FunArg Any Data
+refArg = Imp.refArg
+
+arrArg :: Type a => Arr n a -> FunArg Any Data
+arrArg = Imp.arrArg
+
+objArg :: Object -> FunArg Any Data
+objArg = Imp.objArg
+
+addr :: FunArg Any Data -> FunArg Any Data
+addr = Imp.addr
+
+printfArg :: PrintfArg a => Data a -> Imp.PrintfArg Data
+printfArg = Imp.printfArg
