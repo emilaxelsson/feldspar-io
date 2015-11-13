@@ -40,7 +40,7 @@ library
 
   build-depends:
     array,
-    base < 4.9,
+    base < 4.10,
     directory,
     feldspar-language,
     feldspar-compiler-shim,
