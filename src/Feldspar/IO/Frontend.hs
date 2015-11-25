@@ -167,9 +167,13 @@ unsafeFreezeRef = Program . Imp.unsafeFreezeRef
 shareVal :: Type a => Data a -> Program (Data a)
 shareVal a = initRef a >>= unsafeFreezeRef
 
--- | Create an uninitialized an array
+-- | Create an uninitialized array
 newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Program (Arr i a)
 newArr n = Program $ Imp.newArr n
+
+-- | Create an uninitialized array of unknown size
+newArr_ :: (Type a, Type i, Integral i, Ix i) => Program (Arr i a)
+newArr_ = Program $ Imp.newArr_
 
 -- | Set the contents of an array
 getArr :: (Type a, Integral i, Ix i) => Data i -> Arr i a -> Program (Data a)
