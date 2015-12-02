@@ -22,7 +22,7 @@ library
     Feldspar.IO.CMD
     Feldspar.IO.Frontend
     Feldspar.IO.Mutable
-    Feldspar.Concurrent
+    Feldspar.IO.Concurrent
 
   hs-source-dirs: src
 

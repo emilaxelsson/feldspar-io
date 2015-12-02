@@ -1,4 +1,4 @@
-module Feldspar.Concurrent
+module Feldspar.IO.Concurrent
   ( ThreadId
   , ChanBound
   , Chan
