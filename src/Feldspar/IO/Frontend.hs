@@ -20,6 +20,8 @@ import qualified Control.Monad.Operational.Higher as Imp
 import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
+import qualified Language.Embedded.Imperative.CMD as Imp
+import qualified Language.Embedded.Backend.C as Imp
 
 import Feldspar (Type, Data, WordN (..))
 import Feldspar.Compiler.FromImperative (feldsparCIncludes)
@@ -264,7 +266,7 @@ instance (a ~ ()) => PrintfType (Program a)
 
 instance (Formattable a, PrintfType r) => PrintfType (Data a -> r)
   where
-    fprf h form as = \a -> fprf h form (Imp.printfArg a : as)
+    fprf h form as = \a -> fprf h form (Imp.PrintfArg a : as)
 
 -- | Print to a handle. Accepts a variable number of arguments.
 fprintf :: PrintfType r => Handle -> String -> r
@@ -401,5 +403,3 @@ objArg = Imp.objArg
 addr :: FunArg Any Data -> FunArg Any Data
 addr = Imp.addr
 
-printfArg :: PrintfArg a => Data a -> Imp.PrintfArg Data
-printfArg = Imp.printfArg
