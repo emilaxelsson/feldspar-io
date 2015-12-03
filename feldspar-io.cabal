@@ -21,6 +21,7 @@ library
     Feldspar.IO
     Feldspar.IO.CMD
     Feldspar.IO.Frontend
+    Feldspar.IO.Internal
     Feldspar.IO.Mutable
     Feldspar.IO.Concurrent
 
