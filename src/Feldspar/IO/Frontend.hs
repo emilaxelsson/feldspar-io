@@ -272,6 +272,7 @@ addInclude = Program . Imp.addInclude
 addDefinition :: Definition -> Program ()
 addDefinition = Program . Imp.addDefinition
 
+-- | Declare an external function
 addExternFun :: forall proxy res . Type res
     => String              -- ^ Function name
     -> proxy res           -- ^ Proxy for expression and result type
