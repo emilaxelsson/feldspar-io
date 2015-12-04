@@ -345,8 +345,8 @@ addr = Imp.addr
 --------------------------------------------------------------------------------
 
 -- | Interpret a program in the 'IO' monad
-run :: Program a -> IO a
-run = Imp.interpret . unProgram
+runIO :: Program a -> IO a
+runIO = Imp.interpret . unProgram
 
 -- | Compile a program to C code represented as a string. To compile the
 -- resulting C code, use something like
