@@ -4,7 +4,7 @@ module Demo where
 
 
 
-import Prelude ((<$>))
+import Control.Applicative ((<$>))
 import qualified Prelude ()
 
 import Feldspar
