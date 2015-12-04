@@ -1,4 +1,5 @@
-import Simple ()
+import Misc ()
+import Demo ()
 
 main = return ()
 

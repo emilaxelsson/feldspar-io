@@ -68,7 +68,8 @@ test-suite Examples
     ScopedTypeVariables
 
   other-modules:
-    Simple
+    Misc
+    Demo
 
   build-depends:
     base,
