@@ -255,7 +255,6 @@ addInclude = Program . Imp.addInclude
 -- > {-# LANGUAGE QuasiQuotes #-}
 -- >
 -- > import Feldspar.IO
--- > import Language.C.Quote.C
 -- >
 -- > prog = do
 -- >     ...

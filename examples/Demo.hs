@@ -7,8 +7,6 @@ module Demo where
 import Prelude ((<$>))
 import qualified Prelude ()
 
-import Language.C.Quote.C
-
 import Feldspar
 import Feldspar.IO
 
