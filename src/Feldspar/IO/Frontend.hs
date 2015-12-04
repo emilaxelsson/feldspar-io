@@ -42,101 +42,7 @@ newtype Program a = Program {unProgram :: Imp.Program FeldCMD a}
 
 
 --------------------------------------------------------------------------------
--- * Back ends
---------------------------------------------------------------------------------
-
--- | Interpret a program in the 'IO' monad
-run :: Program a -> IO a
-run = Imp.interpret . unProgram
-
--- | Compile a program to C code represented as a string. To compile the
--- resulting C code, use something like
---
--- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
---
--- For programs that make use of the primitives in "Feldspar.Concurrent", some
--- extra flags are needed:
---
--- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
-compile :: Program a -> String
-compile = Imp.compile . unProgram
-
--- | Compile a program to C code and print it on the screen. To compile the
--- resulting C code, use something like
---
--- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
---
--- For programs that make use of the primitives in "Feldspar.Concurrent", some
--- extra flags are needed:
---
--- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
-icompile :: Program a -> IO ()
-icompile = putStrLn . compile
-
--- | Generate C code and use GCC to compile it
---
--- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
--- to GCC automatically.)
-compileC
-    :: [String]     -- ^ GCC flags (e.g. @["-Ipath"]@)
-    -> Program a    -- ^ Program to compile
-    -> [String]     -- ^ Extra libraries (e.g. @["m","pthread"]@)
-    -> IO FilePath  -- ^ Path to the generated executable
-compileC flags prog libs = do
-    tmp <- getTemporaryDirectory
-    t   <- fmap (map spaceToUnderscore . show) getCurrentTime
-    let exe   = tmp </> "feldspar-io-generated-" ++ t
-    let cfile = exe ++ ".c"
-    writeFile cfile $ compile prog
-    putStrLn $ "Created temporary file: " ++ cfile
-    feldLib <- feldsparCIncludes
-    let compileCMD = unwords
-          $  ["gcc", "-std=c99", "-I" ++ feldLib]
-          ++ flags
-          ++ [cfile, "-o", exe]
-          ++ libFlags
-    putStrLn compileCMD
-    exit <- system compileCMD
-    case exit of
-      ExitSuccess -> return exe
-      err -> error $ show err
-  where
-    spaceToUnderscore ' ' = '_'
-    spaceToUnderscore c   = c
-    libFlags = ["-l" ++ lib | lib <- libs]
-
--- | Generate C code and use GCC to check that it compiles (no linking)
---
--- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
--- to GCC automatically.)
-compileAndCheck
-    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
-    -> Program a  -- ^ Program to compile
-    -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
-    -> IO FilePath
-compileAndCheck flags prog libs = compileC ("-c":flags) prog libs
-
--- | Generate C code, use GCC to compile it, and run the resulting executable
---
--- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
--- to GCC automatically.)
-compileAndRun
-    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
-    -> Program a  -- ^ Program to run
-    -> [String]   -- ^ Extra libraries (e.g. @["m","pthread"]@)
-    -> IO ()
-compileAndRun flags prog libs = do
-    exe <- compileC flags prog libs
-    putStrLn ""
-    putStrLn "#### Now running:"
-    putStrLn exe
-    system exe
-    return ()
-
-
-
---------------------------------------------------------------------------------
--- * User interface
+-- * References
 --------------------------------------------------------------------------------
 
 -- | Create an uninitialized reference
@@ -169,6 +75,12 @@ unsafeFreezeRef = Program . Imp.unsafeFreezeRef
 shareVal :: Type a => Data a -> Program (Data a)
 shareVal a = initRef a >>= unsafeFreezeRef
 
+
+
+--------------------------------------------------------------------------------
+-- * Arrays
+--------------------------------------------------------------------------------
+
 -- | Create an uninitialized array
 newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Program (Arr i a)
 newArr n = Program $ Imp.newArr n
@@ -193,6 +105,12 @@ unsafeThawArr = Program . Imp.singleInj . UnsafeThawArr
 
 freezeArr :: (Type a, Num n, Ix n) => Arr n a -> Data n -> Program (Data [a])
 freezeArr a n = Program $ Imp.singleInj $ FreezeArr a n
+
+
+
+--------------------------------------------------------------------------------
+-- * Control flow
+--------------------------------------------------------------------------------
 
 -- | Conditional statement
 iff
@@ -244,6 +162,12 @@ forE lo hi body = Program $ Imp.forE lo hi (unProgram . body)
 break :: Program ()
 break = Program Imp.break
 
+
+
+--------------------------------------------------------------------------------
+-- * File handling
+--------------------------------------------------------------------------------
+
 -- | Open a file
 fopen :: FilePath -> IOMode -> Program Handle
 fopen file = Program . Imp.fopen file
@@ -289,6 +213,12 @@ fget = Program . Imp.fget
 printf :: PrintfType r => String -> r
 printf = fprintf Imp.stdout
 
+
+
+--------------------------------------------------------------------------------
+-- * Abstract objects
+--------------------------------------------------------------------------------
+
 newObject
     :: String  -- ^ Object type
     -> Program Object
@@ -308,6 +238,11 @@ initUObject
     -> Program Object
 initUObject fun ty args = Program $ Imp.initUObject fun ty args
 
+
+
+--------------------------------------------------------------------------------
+-- * External function calls (C-specific)
+--------------------------------------------------------------------------------
 
 -- | Add an @#include@ statement to the generated code
 addInclude :: String -> Program ()
@@ -402,4 +337,97 @@ objArg = Imp.objArg
 
 addr :: FunArg Any Data -> FunArg Any Data
 addr = Imp.addr
+
+
+
+--------------------------------------------------------------------------------
+-- * Back ends
+--------------------------------------------------------------------------------
+
+-- | Interpret a program in the 'IO' monad
+run :: Program a -> IO a
+run = Imp.interpret . unProgram
+
+-- | Compile a program to C code represented as a string. To compile the
+-- resulting C code, use something like
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
+--
+-- For programs that make use of the primitives in "Feldspar.Concurrent", some
+-- extra flags are needed:
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
+compile :: Program a -> String
+compile = Imp.compile . unProgram
+
+-- | Compile a program to C code and print it on the screen. To compile the
+-- resulting C code, use something like
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C YOURPROGRAM.c
+--
+-- For programs that make use of the primitives in "Feldspar.Concurrent", some
+-- extra flags are needed:
+--
+-- > gcc -std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C -Ipath/to/imperative-edsl/include path/to/imperative-edsl/csrc/chan.c -lpthread YOURPROGRAM.c
+icompile :: Program a -> IO ()
+icompile = putStrLn . compile
+
+-- | Generate C code and use GCC to compile it
+--
+-- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
+-- to GCC automatically.)
+compileC
+    :: [String]     -- ^ GCC flags (e.g. @["-Ipath"]@)
+    -> Program a    -- ^ Program to compile
+    -> [String]     -- ^ GCC flags after C source (e.g. @["-lm","-lpthread"]@)
+    -> IO FilePath  -- ^ Path to the generated executable
+compileC flags prog postFlags = do
+    tmp <- getTemporaryDirectory
+    t   <- fmap (map spaceToUnderscore . show) getCurrentTime
+    let exe   = tmp </> "feldspar-io-generated-" ++ t
+    let cfile = exe ++ ".c"
+    writeFile cfile $ compile prog
+    putStrLn $ "Created temporary file: " ++ cfile
+    feldLib <- feldsparCIncludes
+    let compileCMD = unwords
+          $  ["gcc", "-std=c99", "-I" ++ feldLib]
+          ++ flags
+          ++ [cfile, "-o", exe]
+          ++ postFlags
+    putStrLn compileCMD
+    exit <- system compileCMD
+    case exit of
+      ExitSuccess -> return exe
+      err -> error $ show err
+  where
+    spaceToUnderscore ' ' = '_'
+    spaceToUnderscore c   = c
+
+-- | Generate C code and use GCC to check that it compiles (no linking)
+--
+-- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
+-- to GCC automatically.)
+compileAndCheck
+    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
+    -> Program a  -- ^ Program to compile
+    -> [String]   -- ^ GCC flags after C source (e.g. @["-lm","-lpthread"]@)
+    -> IO FilePath
+compileAndCheck flags = compileC ("-c":flags)
+
+-- | Generate C code, use GCC to compile it, and run the resulting executable
+--
+-- (The flags @"-std=c99 -Ipath/to/feldspar-compiler/lib/Feldspar/C"@ are passed
+-- to GCC automatically.)
+compileAndRun
+    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
+    -> Program a  -- ^ Program to run
+    -> [String]   -- ^ GCC flags after C source (e.g. @["-lm","-lpthread"]@)
+    -> IO ()
+compileAndRun flags prog postFlags = do
+    exe <- compileC flags prog postFlags
+    putStrLn ""
+    putStrLn "#### Now running:"
+    putStrLn exe
+    system exe
+    return ()
 
