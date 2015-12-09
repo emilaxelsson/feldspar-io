@@ -225,16 +225,16 @@ newObject
 newObject = Program . Imp.newObject
 
 initObject
-    :: String            -- ^ Function name
-    -> String            -- ^ Object type
-    -> [FunArg Any Data] -- ^ Arguments
+    :: String        -- ^ Function name
+    -> String        -- ^ Object type
+    -> [FunArg Data] -- ^ Arguments
     -> Program Object
 initObject fun ty args = Program $ Imp.initObject fun ty args
 
 initUObject
-    :: String            -- ^ Function name
-    -> String            -- ^ Object type
-    -> [FunArg Any Data] -- ^ Arguments
+    :: String        -- ^ Function name
+    -> String        -- ^ Object type
+    -> [FunArg Data] -- ^ Arguments
     -> Program Object
 initUObject fun ty args = Program $ Imp.initUObject fun ty args
 
@@ -273,9 +273,9 @@ addDefinition = Program . Imp.addDefinition
 
 -- | Declare an external function
 addExternFun :: forall proxy res . Type res
-    => String              -- ^ Function name
-    -> proxy res           -- ^ Proxy for expression and result type
-    -> [FunArg Type Data]  -- ^ Arguments (only used to determine types)
+    => String         -- ^ Function name
+    -> proxy res      -- ^ Proxy for expression and result type
+    -> [FunArg Data]  -- ^ Arguments (only used to determine types)
     -> Program ()
 addExternFun fun res args = Program $ Imp.addExternFun fun res' args
   where
@@ -283,36 +283,36 @@ addExternFun fun res args = Program $ Imp.addExternFun fun res' args
 
 -- | Declare an external procedure
 addExternProc
-    :: String              -- ^ Procedure name
-    -> [FunArg Type Data]  -- ^ Arguments (only used to determine types)
+    :: String         -- ^ Procedure name
+    -> [FunArg Data]  -- ^ Arguments (only used to determine types)
     -> Program ()
 addExternProc proc args = Program $ Imp.addExternProc proc args
 
 -- | Call a function
 callFun :: Type a
-    => String             -- ^ Function name
-    -> [FunArg Any Data]  -- ^ Arguments
+    => String         -- ^ Function name
+    -> [FunArg Data]  -- ^ Arguments
     -> Program (Data a)
 callFun fun as = Program $ Imp.callFun fun as
 
 -- | Call a procedure
 callProc
-    :: String             -- ^ Function name
-    -> [FunArg Any Data]  -- ^ Arguments
+    :: String         -- ^ Function name
+    -> [FunArg Data]  -- ^ Arguments
     -> Program ()
 callProc fun as = Program $ Imp.callProc fun as
 
 -- | Declare and call an external function
 externFun :: Type res
-    => String              -- ^ Procedure name
-    -> [FunArg Type Data]  -- ^ Arguments
+    => String         -- ^ Procedure name
+    -> [FunArg Data]  -- ^ Arguments
     -> Program (Data res)
 externFun fun args = Program $ Imp.externFun fun args
 
 -- | Declare and call an external procedure
 externProc
-    :: String              -- ^ Procedure name
-    -> [FunArg Type Data]  -- ^ Arguments
+    :: String         -- ^ Procedure name
+    -> [FunArg Data]  -- ^ Arguments
     -> Program ()
 externProc proc args = Program $ Imp.externProc proc args
 
@@ -320,22 +320,22 @@ externProc proc args = Program $ Imp.externProc proc args
 getTime :: Program (Data Double)
 getTime = Program Imp.getTime
 
-strArg :: String -> FunArg Any Data
+strArg :: String -> FunArg Data
 strArg = Imp.strArg
 
-valArg :: Type a => Data a -> FunArg Any Data
+valArg :: Type a => Data a -> FunArg Data
 valArg = Imp.valArg
 
-refArg :: Type a => Ref a -> FunArg Any Data
+refArg :: Type a => Ref a -> FunArg Data
 refArg = Imp.refArg
 
-arrArg :: Type a => Arr n a -> FunArg Any Data
+arrArg :: Type a => Arr n a -> FunArg Data
 arrArg = Imp.arrArg
 
-objArg :: Object -> FunArg Any Data
+objArg :: Object -> FunArg Data
 objArg = Imp.objArg
 
-addr :: FunArg Any Data -> FunArg Any Data
+addr :: FunArg Data -> FunArg Data
 addr = Imp.addr
 
 
