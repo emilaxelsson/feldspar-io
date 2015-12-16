@@ -5,7 +5,7 @@ module Demo where
 
 
 import Control.Applicative ((<$>))
-import qualified Prelude ()
+import qualified Prelude
 
 import Feldspar
 import Feldspar.IO
