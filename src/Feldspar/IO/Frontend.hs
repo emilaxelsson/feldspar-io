@@ -188,7 +188,7 @@ instance (a ~ ()) => PrintfType (Program a)
   where
     fprf h form as = Program $ Imp.singleE $ FPrintf h form (reverse as)
 
-instance (Formattable a, PrintfType r) => PrintfType (Data a -> r)
+instance (Formattable a, Type a, PrintfType r) => PrintfType (Data a -> r)
   where
     fprf h form as = \a -> fprf h form (Imp.PrintfArg a : as)
 
@@ -197,7 +197,7 @@ fprintf :: PrintfType r => Handle -> String -> r
 fprintf h format = fprf h format []
 
 -- | Put a single value to a handle
-fput :: Formattable a
+fput :: (Formattable a, Type a)
     => Handle
     -> String  -- Prefix
     -> Data a  -- Expression to print
