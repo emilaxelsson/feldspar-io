@@ -89,11 +89,11 @@ newArr n = Program $ Imp.newArr n
 newArr_ :: (Type a, Type i, Integral i, Ix i) => Program (Arr i a)
 newArr_ = Program $ Imp.newArr_
 
--- | Set the contents of an array
+-- | Get an element of an array
 getArr :: (Type a, Integral i, Ix i) => Data i -> Arr i a -> Program (Data a)
 getArr i arr = Program $ Imp.getArr i arr
 
--- | Set the contents of an array
+-- | Set an element of an array
 setArr :: (Type a, Integral i, Ix i) => Data i -> Data a -> Arr i a -> Program ()
 setArr i a arr = Program $ Imp.setArr i a arr
 
