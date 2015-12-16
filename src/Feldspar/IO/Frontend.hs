@@ -9,11 +9,11 @@ import Control.Applicative
 #endif
 import Data.Ix
 import Data.Proxy
-import Data.Time (getCurrentTime)
+import Data.Time (getCurrentTime, formatTime, defaultTimeLocale)
 import Text.Printf (PrintfArg)
 import System.Directory (getTemporaryDirectory)
 import System.Exit (ExitCode (..))
-import System.FilePath ((</>))
+import System.IO (openTempFile, hClose, hPutStr)
 import System.Process (system)
 
 import qualified Control.Monad.Operational.Higher as Imp
@@ -383,25 +383,23 @@ compileC
     -> IO FilePath  -- ^ Path to the generated executable
 compileC flags prog postFlags = do
     tmp <- getTemporaryDirectory
-    t   <- fmap (map spaceToUnderscore . show) getCurrentTime
-    let exe   = tmp </> "feldspar-io-generated-" ++ t
-    let cfile = exe ++ ".c"
-    writeFile cfile $ compile prog
-    putStrLn $ "Created temporary file: " ++ cfile
+    t   <- fmap (formatTime defaultTimeLocale "%a-%H-%M-%S_") getCurrentTime
+    (exeFile,exeh) <- openTempFile tmp ("feldspar_" ++ t)
+    hClose exeh
+    let cFile = exeFile ++ ".c"
+    writeFile cFile $ compile prog
+    putStrLn $ "Created temporary file: " ++ cFile
     feldLib <- feldsparCIncludes
     let compileCMD = unwords
           $  ["gcc", "-std=c99", "-I" ++ feldLib]
           ++ flags
-          ++ [cfile, "-o", exe]
+          ++ [cFile, "-o", exeFile]
           ++ postFlags
     putStrLn compileCMD
     exit <- system compileCMD
     case exit of
-      ExitSuccess -> return exe
+      ExitSuccess -> return exeFile
       err -> error $ show err
-  where
-    spaceToUnderscore ' ' = '_'
-    spaceToUnderscore c   = c
 
 -- | Generate C code and use GCC to check that it compiles (no linking)
 --
