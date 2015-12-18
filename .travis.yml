@@ -45,8 +45,7 @@ install:
   - cabal sandbox add-source feldspar-language
   - cabal sandbox add-source feldspar-compiler
   - cabal sandbox add-source feldspar-compiler-shim
-  - cabal install -f-full-haskell-antiquotes language-c-quote --force-reinstalls --constraint="time>=1.5"
-  - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls $CABAL_OPTS
+  - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --constraint="language-c-quote -full-haskell-antiquotes" $CABAL_OPTS
 
 script:
   - cabal configure --enable-tests --enable-benchmarks -v2
