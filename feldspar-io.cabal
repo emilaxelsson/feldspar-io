@@ -53,7 +53,7 @@ library
     process,
     tagged,
       -- tagged needed by GHC 7.6
-    time
+    time >= 1.5
 
 test-suite Examples
   type: exitcode-stdio-1.0
