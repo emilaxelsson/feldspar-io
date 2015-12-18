@@ -53,9 +53,9 @@ library
     process,
     time >= 1.5
 
-if impl(ghc < 7.8)
-  build-depends:
-    tagged
+  if impl(ghc < 7.8)
+    build-depends:
+      tagged
 
 test-suite Examples
   type: exitcode-stdio-1.0
