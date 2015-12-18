@@ -42,10 +42,8 @@ library
   build-depends:
     array,
     base < 4.10,
-    directory,
     feldspar-language,
     feldspar-compiler-shim,
-    filepath,
     imperative-edsl,
     language-c-quote >= 0.11 && < 0.12,
     mainland-pretty >= 0.4 && < 0.5,
