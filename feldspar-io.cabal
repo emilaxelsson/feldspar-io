@@ -51,9 +51,11 @@ library
     mainland-pretty >= 0.4 && < 0.5,
     operational-alacarte,
     process,
-    tagged,
-      -- tagged needed by GHC 7.6
     time >= 1.5
+
+if impl(ghc < 7.8)
+  build-depends:
+    tagged
 
 test-suite Examples
   type: exitcode-stdio-1.0
