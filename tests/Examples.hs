@@ -1,5 +1,5 @@
 import Misc ()
-import Demo ()
+import qualified Demo
 
-main = return ()
+main = Demo.testAll
 

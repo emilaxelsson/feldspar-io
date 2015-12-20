@@ -4,8 +4,8 @@ module Demo where
 
 
 
-import Control.Applicative ((<$>))
 import qualified Prelude
+import Control.Applicative ((<$>))
 
 import Feldspar
 import Feldspar.IO
@@ -56,4 +56,12 @@ printFib = do
     printf "Enter a positive number: "
     n <- fget stdin
     printf "The %dth Fibonacci number is %d.\n" n (fib n)
+
+
+
+------------------------------------------------------------
+
+testAll = do
+    compileAndCheck [] sumInput []
+    compileAndCheck [] printFib []
 
