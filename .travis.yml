@@ -22,7 +22,6 @@ matrix:
 
 before_install:
   - env
-  - git clone https://github.com/emilaxelsson/language-c-quote.git --branch no-haskell-src-meta
   - git clone https://github.com/emilaxelsson/imperative-edsl
   - git clone https://github.com/Feldspar/feldspar-language
   - git clone https://github.com/Feldspar/feldspar-compiler
@@ -40,7 +39,6 @@ install:
   - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - travis_retry cabal update
   - cabal sandbox init
-  - cabal sandbox add-source language-c-quote
   - cabal sandbox add-source imperative-edsl
   - cabal sandbox add-source feldspar-language
   - cabal sandbox add-source feldspar-compiler
