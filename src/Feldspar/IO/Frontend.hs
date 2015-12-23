@@ -1,6 +1,9 @@
 {-# LANGUAGE CPP #-}
 
-module Feldspar.IO.Frontend where
+module Feldspar.IO.Frontend
+  ( module Feldspar.IO.Frontend
+  , ExternalCompilerOpts (..)
+  ) where
 
 
 
