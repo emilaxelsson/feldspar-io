@@ -47,9 +47,7 @@ library
     imperative-edsl,
     language-c-quote >= 0.11 && < 0.12,
     mainland-pretty >= 0.4 && < 0.5,
-    operational-alacarte,
-    process,
-    time >= 1.5
+    operational-alacarte
 
   if impl(ghc < 7.8)
     build-depends:
