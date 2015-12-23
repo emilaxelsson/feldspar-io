@@ -62,6 +62,6 @@ printFib = do
 ------------------------------------------------------------
 
 testAll = do
-    compileAndCheck sumInput
-    compileAndCheck printFib
+    compareCompiled sumInput (Prelude.unlines $ Prelude.map show $ Prelude.reverse [0..20])
+    compareCompiled printFib "7\n"
 

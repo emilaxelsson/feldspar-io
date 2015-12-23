@@ -360,11 +360,15 @@ compile = Imp.compile . unProgram
 icompile :: Program a -> IO ()
 icompile = putStrLn . compile
 
+addFeldsparCIncludes :: ExternalCompilerOpts -> IO ExternalCompilerOpts
+addFeldsparCIncludes opts = do
+    feldLib <- feldsparCIncludes
+    return $ opts <> mempty { externalFlagsPre = ["-I" ++ feldLib] }
+
 -- | Generate C code and use GCC to check that it compiles (no linking)
 compileAndCheck' :: ExternalCompilerOpts -> Program a -> IO ()
 compileAndCheck' opts prog = do
-    feldLib <- feldsparCIncludes
-    let opts' = opts <> mempty { externalFlagsPre = ["-I" ++ feldLib] }
+    opts' <- addFeldsparCIncludes opts
     Imp.compileAndCheck' opts' (unProgram prog)
 
 -- | Generate C code and use GCC to check that it compiles (no linking)
@@ -374,11 +378,48 @@ compileAndCheck = compileAndCheck' mempty
 -- | Generate C code, use GCC to compile it, and run the resulting executable
 runCompiled' :: ExternalCompilerOpts -> Program a -> IO ()
 runCompiled' opts prog = do
-    feldLib <- feldsparCIncludes
-    let opts' = opts <> mempty { externalFlagsPre = ["-I" ++ feldLib] }
+    opts' <- addFeldsparCIncludes opts
     Imp.runCompiled' opts' (unProgram prog)
 
 -- | Generate C code, use GCC to compile it, and run the resulting executable
 runCompiled :: Program a -> IO ()
 runCompiled = runCompiled' mempty
+
+-- | Like 'runCompiled'' but with explicit input/output connected to
+-- @stdin@/@stdout@
+captureCompiled'
+    :: ExternalCompilerOpts
+    -> Program a  -- ^ Program to run
+    -> String     -- ^ Input to send to @stdin@
+    -> IO String  -- ^ Result from @stdout@
+captureCompiled' opts prog inp = do
+    opts' <- addFeldsparCIncludes opts
+    Imp.captureCompiled' opts' (unProgram prog) inp
+
+-- | Like 'runCompiled' but with explicit input/output connected to
+-- @stdin@/@stdout@
+captureCompiled
+    :: Program a  -- ^ Program to run
+    -> String     -- ^ Input to send to @stdin@
+    -> IO String  -- ^ Result from @stdout@
+captureCompiled = captureCompiled' mempty
+
+-- | Compare the content written to 'stdout' from interpretation in 'IO' and
+-- from running the compiled C code
+compareCompiled'
+    :: ExternalCompilerOpts
+    -> Program a  -- ^ Program to run
+    -> String     -- ^ Input to send to @stdin@
+    -> IO ()
+compareCompiled' opts prog inp = do
+    opts' <- addFeldsparCIncludes opts
+    Imp.compareCompiled' opts' (unProgram prog) inp
+
+-- | Compare the content written to 'stdout' from interpretation in 'IO' and
+-- from running the compiled C code
+compareCompiled
+    :: Program a  -- ^ Program to run
+    -> String     -- ^ Input to send to @stdin@
+    -> IO ()
+compareCompiled = compareCompiled' mempty
 
