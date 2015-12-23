@@ -62,6 +62,6 @@ printFib = do
 ------------------------------------------------------------
 
 testAll = do
-    compileAndCheck [] sumInput []
-    compileAndCheck [] printFib []
+    compileAndCheck sumInput
+    compileAndCheck printFib
 

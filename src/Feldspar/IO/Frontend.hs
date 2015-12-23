@@ -8,6 +8,7 @@ module Feldspar.IO.Frontend where
 import Control.Applicative
 #endif
 import Data.Ix
+import Data.Monoid
 import Data.Proxy
 import Text.Printf (PrintfArg)
 
@@ -16,6 +17,7 @@ import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
 import qualified Language.Embedded.Imperative.CMD as Imp
+import Language.Embedded.Backend.C (ExternalCompilerOpts (..))
 import qualified Language.Embedded.Backend.C as Imp
 
 import Feldspar (Type, Data, WordN (..))
@@ -130,28 +132,12 @@ while
     -> Program ()
 while b t = Program $ Imp.while (unProgram b) (unProgram t)
 
--- | While loop that returns an expression
-whileE :: Type a
-    => Program (Data Bool)  -- ^ Continue condition
-    -> Program (Data a)     -- ^ Loop body
-    -> Program (Data a)
-whileE b t = Program $ Imp.whileE (unProgram b) (unProgram t)
-
 -- | For loop
 for :: (Integral n, Type n)
-    => Data n                  -- ^ Start index
-    -> Data n                  -- ^ Stop index
+    => IxRange (Data n)        -- ^ Index range
     -> (Data n -> Program ())  -- ^ Loop body
     -> Program ()
-for lo hi body = Program $ Imp.for lo hi (unProgram . body)
-
--- | For loop
-forE :: (Integral n, Type n, Type a)
-    => Data n                        -- ^ Start index
-    -> Data n                        -- ^ Stop index
-    -> (Data n -> Program (Data a))  -- ^ Loop body
-    -> Program (Data a)
-forE lo hi body = Program $ Imp.forE lo hi (unProgram . body)
+for range body = Program $ Imp.for range (unProgram . body)
 
 -- | Break out from a loop
 break :: Program ()
@@ -341,7 +327,14 @@ addr = Imp.addr
 
 -- | Interpret a program in the 'IO' monad
 runIO :: Program a -> IO a
-runIO = Imp.interpret . unProgram
+runIO = Imp.runIO . unProgram
+
+-- | Like 'runIO' but with explicit input/output connected to @stdin@/@stdout@
+captureIO
+    :: Program a  -- ^ Program to run
+    -> String     -- ^ Faked @stdin@
+    -> IO String  -- ^ Captured @stdout@
+captureIO = Imp.captureIO . unProgram
 
 -- | Compile a program to C code represented as a string. To compile the
 -- resulting C code, use something like
@@ -368,24 +361,24 @@ icompile :: Program a -> IO ()
 icompile = putStrLn . compile
 
 -- | Generate C code and use GCC to check that it compiles (no linking)
-compileAndCheck
-    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
-    -> Program a  -- ^ Program to compile
-    -> [String]   -- ^ GCC flags after C source (e.g. @["-lm","-lpthread"]@)
-    -> IO ()
-compileAndCheck flags prog postFlags = do
+compileAndCheck' :: ExternalCompilerOpts -> Program a -> IO ()
+compileAndCheck' opts prog = do
     feldLib <- feldsparCIncludes
-    let flags' = ("-I" ++ feldLib) : flags
-    Imp.compileAndCheck flags' (unProgram prog) postFlags
+    let opts' = opts <> mempty { externalFlagsPre = ["-I" ++ feldLib] }
+    Imp.compileAndCheck' opts' (unProgram prog)
+
+-- | Generate C code and use GCC to check that it compiles (no linking)
+compileAndCheck :: Program a -> IO ()
+compileAndCheck = compileAndCheck' mempty
 
 -- | Generate C code, use GCC to compile it, and run the resulting executable
-runCompiled
-    :: [String]   -- ^ GCC flags (e.g. @["-Ipath"]@)
-    -> Program a  -- ^ Program to run
-    -> [String]   -- ^ GCC flags after C source (e.g. @["-lm","-lpthread"]@)
-    -> IO ()
-runCompiled flags prog postFlags = do
+runCompiled' :: ExternalCompilerOpts -> Program a -> IO ()
+runCompiled' opts prog = do
     feldLib <- feldsparCIncludes
-    let flags' = ("-I" ++ feldLib) : flags
-    Imp.runCompiled flags' (unProgram prog) postFlags
+    let opts' = opts <> mempty { externalFlagsPre = ["-I" ++ feldLib] }
+    Imp.runCompiled' opts' (unProgram prog)
+
+-- | Generate C code, use GCC to compile it, and run the resulting executable
+runCompiled :: Program a -> IO ()
+runCompiled = runCompiled' mempty
 
