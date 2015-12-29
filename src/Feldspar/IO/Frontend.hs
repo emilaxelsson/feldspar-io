@@ -138,6 +138,13 @@ ifE :: Type a
     -> Program (Data a)
 ifE b t f = Program $ Imp.ifE b (unProgram t) (unProgram f)
 
+-- | For loop
+for :: (Integral n, Type n)
+    => IxRange (Data n)        -- ^ Index range
+    -> (Data n -> Program ())  -- ^ Loop body
+    -> Program ()
+for range body = Program $ Imp.for range (unProgram . body)
+
 -- | While loop
 while
     :: Program (Data Bool)  -- ^ Continue condition
@@ -145,12 +152,12 @@ while
     -> Program ()
 while b t = Program $ Imp.while (unProgram b) (unProgram t)
 
--- | For loop
-for :: (Integral n, Type n)
-    => IxRange (Data n)        -- ^ Index range
-    -> (Data n -> Program ())  -- ^ Loop body
+-- | Assertion
+assert
+    :: Data Bool  -- ^ Expression that should be true
+    -> String     -- ^ Message in case of failure
     -> Program ()
-for range body = Program $ Imp.for range (unProgram . body)
+assert cond msg = Program $ Imp.assert cond msg
 
 -- | Break out from a loop
 break :: Program ()
