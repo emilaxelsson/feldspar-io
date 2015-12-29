@@ -97,6 +97,16 @@ getArr i arr = Program $ Imp.getArr i arr
 setArr :: (Type a, Integral i, Ix i) => Data i -> Data a -> Arr i a -> Program ()
 setArr i a arr = Program $ Imp.setArr i a arr
 
+-- | Copy the contents of an array to another array. The number of elements to
+-- copy must not be greater than the number of allocated elements in either
+-- array.
+copyArr :: (Type a, Type i, Integral i, Ix i)
+    => Arr i a  -- ^ Destination
+    -> Arr i a  -- ^ Source
+    -> Data i   -- ^ Number of elements
+    -> Program ()
+copyArr arr1 arr2 len = Program $ Imp.copyArr arr1 arr2 len
+
 thawArr :: (Type a, Num n, Ix n) => Data [a] -> Program (Arr n a)
 thawArr = Program . Imp.singleInj . ThawArr
 
