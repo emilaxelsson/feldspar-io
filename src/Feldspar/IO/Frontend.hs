@@ -90,11 +90,13 @@ newArr_ :: (Type a, Type i, Integral i, Ix i) => Program (Arr i a)
 newArr_ = Program $ Imp.newArr_
 
 -- | Get an element of an array
-getArr :: (Type a, Integral i, Ix i) => Data i -> Arr i a -> Program (Data a)
+getArr :: (Type a, Type i, Integral i, Ix i) =>
+    Data i -> Arr i a -> Program (Data a)
 getArr i arr = Program $ Imp.getArr i arr
 
 -- | Set an element of an array
-setArr :: (Type a, Integral i, Ix i) => Data i -> Data a -> Arr i a -> Program ()
+setArr :: (Type a, Type i, Integral i, Ix i) =>
+    Data i -> Data a -> Arr i a -> Program ()
 setArr i a arr = Program $ Imp.setArr i a arr
 
 -- | Copy the contents of an array to another array. The number of elements to
