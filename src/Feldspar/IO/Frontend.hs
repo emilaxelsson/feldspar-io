@@ -3,6 +3,7 @@
 module Feldspar.IO.Frontend
   ( module Feldspar.IO.Frontend
   , ExternalCompilerOpts (..)
+  , defaultExtCompilerOpts
   ) where
 
 
@@ -20,7 +21,7 @@ import Language.Embedded.Imperative.CMD (FileCMD (..))
 import Language.Embedded.Imperative.Frontend.General
 import qualified Language.Embedded.Imperative as Imp
 import qualified Language.Embedded.Imperative.CMD as Imp
-import Language.Embedded.Backend.C (ExternalCompilerOpts (..))
+import Language.Embedded.Backend.C (ExternalCompilerOpts (..), defaultExtCompilerOpts)
 import qualified Language.Embedded.Backend.C as Imp
 
 import Feldspar (Type, Data, WordN (..))
