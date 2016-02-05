@@ -8,6 +8,7 @@ module Feldspar.IO.CMD where
 
 import Data.Array
 import Data.Array.IO
+import Data.IORef
 import Data.List (genericLength)
 import Data.Typeable
 
@@ -70,11 +71,13 @@ type instance IExp ArrConvCMD         = Data
 type instance IExp (ArrConvCMD :+: i) = Data
 
 runArrConvCMD :: ArrConvCMD prog a -> IO a
-runArrConvCMD (ThawArr arr) = fmap ArrEval $ thaw' $ evalExp arr
+runArrConvCMD (ThawArr arr) =
+    fmap ArrEval . newIORef =<< thaw' (evalExp arr)
   where
     thaw' as = newListArray (0, genericLength as - 1) as
 runArrConvCMD (UnsafeThawArr arr)         = runArrConvCMD (ThawArr arr)
-runArrConvCMD (FreezeArr (ArrEval arr) n) = fmap litExp $ freeze' arr -- TODO n?
+runArrConvCMD (FreezeArr (ArrEval arr) n) =
+    fmap litExp . freeze' =<< readIORef arr -- TODO n?
   where
     freeze' arr = fmap elems $ freeze arr
 
