@@ -86,10 +86,6 @@ shareVal a = initRef a >>= unsafeFreezeRef
 newArr :: (Type a, Type i, Integral i, Ix i) => Data i -> Program (Arr i a)
 newArr n = Program $ Imp.newArr n
 
--- | Create an uninitialized array of unknown size
-newArr_ :: (Type a, Type i, Integral i, Ix i) => Program (Arr i a)
-newArr_ = Program $ Imp.newArr_
-
 -- | Get an element of an array
 getArr :: (Type a, Type i, Integral i, Ix i) =>
     Data i -> Arr i a -> Program (Data a)
